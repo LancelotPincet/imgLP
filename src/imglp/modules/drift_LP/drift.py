@@ -88,7 +88,7 @@ def drift(image, image2, /, drift_max=None, *, fact=1, xp=np) :
 def subpixel_peak_1d(vals):
     denom = 2 * vals[1] - vals[0] - vals[2]
     if denom == 0:
-        return 0.0
+        raise ValueError('Denominator should not be 0')
     return 0.5 * (vals[0] - vals[2]) / denom
 
 

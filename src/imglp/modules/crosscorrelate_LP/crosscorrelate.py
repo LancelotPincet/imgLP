@@ -13,7 +13,7 @@ This function will calculated the image crosscorrelation between two images.
 
 
 # %% Libraries
-from numba import njit, cuda
+from numba import njit, cuda, prange
 import numpy as np
 
 
