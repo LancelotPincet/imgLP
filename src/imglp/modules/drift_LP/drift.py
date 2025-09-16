@@ -95,16 +95,18 @@ def drift(image, image2, /, drift_max=None, *, do_hp=True, do_contrast_norm=Fals
     # Calculating crosscorrelation
     cc = crosscorrelate(image, image2, cropshape=cropshape, xp=xp)
 
-    # Find peak
-    iy, ix = xp.unravel_index(int(xp.argmax(cc)), cc.shape) # integer position
-    if 0 < iy < cc.shape[0] - 1:
-        dy_sub = subpixel_peak_1d(cc[iy-1:iy+2, ix])
-    else :
+    # Find integer peak
+    iy, ix = xp.unravel_index(int(xp.argmax(cc)), cc.shape)
+
+    # Ensure we are not on the border
+    if not (0 < iy < cc.shape[0] - 1 and 0 < ix < cc.shape[1] - 1):
         raise ValueError('Drift CC peak is on border, probably drift_max is not big enough.')
-    if 0 < ix < cc.shape[1] - 1:
-        dx_sub = subpixel_peak_1d(cc[iy, ix-1:ix+2])
-    else :
-        raise ValueError('Drift CC peak is on border, probably drift_max is not big enough.')
+
+    # Extract 3x3 neighborhood around the peak
+    win = cc[iy-1:iy+2, ix-1:ix+2].astype(float)
+
+    # Fit 2D quadratic to neighborhood
+    dy_sub, dx_sub = subpixel_peak_2d(win)
 
     # Convert peak position to shift
     dy = (iy - cc.shape[0] // 2) + dy_sub
@@ -114,12 +116,38 @@ def drift(image, image2, /, drift_max=None, *, do_hp=True, do_contrast_norm=Fals
 
 
 
-def subpixel_peak_1d(vals):
-    denom = 2 * vals[1] - vals[0] - vals[2]
-    if denom == 0:
-        raise ValueError('Denominator should not be 0')
-    return 0.5 * (vals[0] - vals[2]) / denom
+def subpixel_peak_2d(win):
 
+    # Coordinates relative to center
+    y, x = np.mgrid[-1:2, -1:2]
+
+    # Flatten
+    X = np.column_stack([
+        x.ravel()**2,
+        y.ravel()**2,
+        x.ravel()*y.ravel(),
+        x.ravel(),
+        y.ravel(),
+        np.ones(9)
+    ])
+    Z = win.ravel()
+
+    # Solve least squares for coefficients
+    coeffs, _, _, _ = np.linalg.lstsq(X, Z, rcond=None)
+    a, b, c, d, e, f = coeffs
+
+    # Solve for stationary point of quadratic surface
+    A = np.array([[2*a, c],
+                  [c,   2*b]])
+    bvec = -np.array([d, e])
+
+    try:
+        offset = np.linalg.solve(A, bvec)
+    except np.linalg.LinAlgError:
+        offset = np.array([0.0, 0.0])  # fallback if singular
+
+    dx_sub, dy_sub = offset
+    return dy_sub, dx_sub
 
 
 # %% Test function run
