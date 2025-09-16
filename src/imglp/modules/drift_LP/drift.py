@@ -15,11 +15,12 @@ This function calculates the drift between two close images.
 # %% Libraries
 import numpy as np
 from imglp import crosscorrelate
+from arrlp import correlate
 
 
 
 # %% Function
-def drift(image, image2, /, drift_max=None, *, fact=1, xp=np) :
+def drift(image, image2, /, drift_max=None, *, do_hp=True, do_contrast_norm=False, fact=1, xp=np) :
     '''
     This function calculates the drift between two close images.
     
@@ -31,6 +32,10 @@ def drift(image, image2, /, drift_max=None, *, fact=1, xp=np) :
         second image to use.
     drift_max : float
         maximum drift in pixels.
+    do_hp : bool
+        True to apply high-pass filtering on images to avoid calculating drift on background
+    do_contrast_norm : bool
+        True to apply a contrast normalization making each local pic the same intensity
     fact : float
         factor to apply to change maximum drift.
     xp : numpy or cupy
@@ -62,6 +67,30 @@ def drift(image, image2, /, drift_max=None, *, fact=1, xp=np) :
         cropshape = (cs, cs)
     else :
         cropshape = None
+
+    # High pass filtering
+    if do_hp :
+        image = correlate(image, sigma=1) -  correlate(image, sigma=3)
+        image2 = correlate(image2, sigma=1) -  correlate(image2, sigma=3)
+
+    # Contrast normalization : locally all pics have same amplitude
+    if do_contrast_norm :
+        bg = correlate(image, sigma=5) # local background estimate (blur)
+        sq = correlate(image**2, sigma=5) # local contrast (std) approx by sqrt( local variance )
+        local_var = np.maximum(0.0, sq - bg**2)
+        local_std = np.sqrt(local_var)
+        local_std = np.maximum(local_std, 1e-6) # Avoid divide-by-zero
+        image = (image - bg) / local_std
+        bg = correlate(image2, sigma=5) # local background estimate (blur)
+        sq = correlate(image2**2, sigma=5) # local contrast (std) approx by sqrt( local variance )
+        local_var = np.maximum(0.0, sq - bg**2)
+        local_std = np.sqrt(local_var)
+        local_std = np.maximum(local_std, 1e-6) # Avoid divide-by-zero
+        image2 = (image2 - bg) / local_std
+
+    # Normalization
+    image -= image.mean()
+    image2 -= image2.mean()
 
     # Calculating crosscorrelation
     cc = crosscorrelate(image, image2, cropshape=cropshape, xp=xp)
