@@ -15,7 +15,7 @@ drift : This function calculates the drift between two close images.
 
 
 # %% Libraries
-from corelp import print, debug
+from corelp import debug
 import pytest
 from imglp import drift
 debug_folder = debug(__file__)

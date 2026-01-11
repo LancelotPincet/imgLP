@@ -15,7 +15,7 @@ crosscorrelate : This function will calculated the image crosscorrelation betwee
 
 
 # %% Libraries
-from corelp import print, debug
+from corelp import debug
 import pytest
 from imglp import crosscorrelate
 debug_folder = debug(__file__)
