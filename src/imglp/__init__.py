@@ -11,11 +11,18 @@ A library that provides tools for image processing.
 
 
 
-# %% Source code
+# %% Source import
 sources = {
 'crosscorrelate': 'imglp.modules.crosscorrelate_LP.crosscorrelate',
 'drift': 'imglp.modules.drift_LP.drift'
 }
+
+
+
+# %% Hidden imports
+if False :
+    import imglp.modules.crosscorrelate_LP.crosscorrelate
+    import imglp.modules.drift_LP.drift
 
 
 
