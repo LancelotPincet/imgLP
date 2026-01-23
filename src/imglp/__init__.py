@@ -17,21 +17,6 @@ sources = {
 'drift': 'imglp.modules.drift_LP.drift'
 }
 
-from importlib import resources
-from contextlib import contextmanager
-
-@contextmanager
-def resources_dir():
-    with resources.as_file(resources.files("imglp.resources")) as path:
-        yield path
-if False: 
-    import imglp.resources
-
-# %% Hidden imports
-if False :
-    import imglp.modules.crosscorrelate_LP.crosscorrelate
-    import imglp.modules.drift_LP.drift
-
 
 
 # %% Lazy imports
