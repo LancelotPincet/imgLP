@@ -24,6 +24,8 @@ from contextlib import contextmanager
 def resources_dir():
     with resources.as_file(resources.files("imglp.resources")) as path:
         yield path
+if False: 
+    import imglp.resources
 
 # %% Hidden imports
 if False :
