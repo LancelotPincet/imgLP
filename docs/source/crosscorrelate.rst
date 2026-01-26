@@ -1,4 +1,4 @@
-imglp.crosscorrelate module
-===========================
+template_lowername.crosscorrelate module
+template_equals======================
 
-.. autofunction:: imglp.crosscorrelate
+.. autofunction:: template_lowername.crosscorrelate

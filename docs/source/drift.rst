@@ -1,4 +1,4 @@
-imglp.drift module
-==================
+template_lowername.drift module
+template_equals=============
 
-.. autofunction:: imglp.drift
+.. autofunction:: template_lowername.drift
